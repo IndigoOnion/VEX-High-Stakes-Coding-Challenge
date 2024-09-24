@@ -1,7 +1,9 @@
 // left motor group
-pros::MotorGroup left_motor_group({-1, 2, -3}, pros::MotorGears::blue);
+pros::MotorGroup left_motor_group({4, 5, -6}, pros::MotorGears::blue);
 // right motor group
-pros::MotorGroup right_motor_group({4, -5, 6}, pros::MotorGears::green);
+pros::MotorGroup right_motor_group({1, 2, -3}, pros::MotorGears::green);
+// roller motor group
+pros::Motor roller_motor(7);
 
 // drivetrain settings
 lemlib::Drivetrain drivetrain(&left_motor_group, // left motor group
@@ -13,7 +15,7 @@ lemlib::Drivetrain drivetrain(&left_motor_group, // left motor group
 );
 
 // imu
-pros::Imu imu(10);
+pros::Imu imu(8);
 // horizontal tracking wheel encoder
 pros::Rotation horizontal_encoder(20);
 // vertical tracking wheel encoder
@@ -77,4 +79,37 @@ void initialize() {
             pros::delay(20);
         }
     });
+
+pros::Controller controller(pros::E_CONTROLLER_MASTER);
+
+void opcontrol() {
+    // loop forever
+    while (true) {
+        // get left y and right x positions
+        int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+        int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+
+        // move the robot
+        chassis.arcade(leftY, rightX);
+
+        // delay to save resources
+        pros::delay(25);
+    }
+      if (CONTROLLER_GET_DIGITAL_L1) {
+        roller.moveVoltage(-12000);
+      }
+      if (CONTROLLER_GET_DIGITAL_L2) {
+        roller.moveVoltage(12000);
+      }
+  
+  }
+void autonomous() {
+    chassis.moveToPoint(10, 10, 8000); //move to ring
+    chassis.turnToHeading(45, 4000); //turn to the ring
+    roller.moveVoltage(-12000); //imagine its moving down to pick ring up - no claw function...
+    roller.moveVoltage(12000); //imagine its moving up 
+    chassis.movetoPoint(20,20,8000); //move to goal
+    chassis.turnToHeading(45, 4000); //turn to the goal
+    roller.moveVoltage(300); //slightly move arm up - imagine claw drops ring into goal - scored (no claw motor provided btw)
 }
+
